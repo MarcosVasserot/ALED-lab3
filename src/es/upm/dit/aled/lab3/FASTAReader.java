@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ import java.util.List;
  * are valid, an int indicating how many bytes of the array are valid is also
  * stored. All valid characters will be at the beginning of the array.
  * 
- * @author mmiguel, rgarciacarmona
+ *@author Marcos Vasserot 
  *
  */
 public class FASTAReader {
@@ -135,9 +136,19 @@ public class FASTAReader {
 	 * pattern when one has been found to be different.
 	 */
 	private boolean compareImproved(byte[] pattern, int position) throws FASTAException {
-		// TODO
-		return false;
+		if (position + pattern.length > validBytes) {
+			throw new FASTAException("Pattern goes beyond the end of the file.");
+		}
+		boolean match = true;
+		for (int i = 0; i < pattern.length; i++) {
+			if (pattern[i] != content[position + i]) {
+				return false; 
+			}
+		}
+		return match;
 	}
+		
+	
 
 	/*
 	 * Improved version of the compare method that returns the number of bytes in
@@ -149,8 +160,18 @@ public class FASTAReader {
 	 */
 	private int compareNumErrors(byte[] pattern, int position) throws FASTAException {
 		// TODO
-		return -1;
+		if (position + pattern.length > validBytes) {
+			throw new FASTAException("Pattern goes beyond the end of the file.");
+		}
+		int numErrors = 0; 
+		for (int i = 0; i < pattern.length; i++) {
+			if (pattern[i] != content[position + i]) {
+				numErrors++; 
+			}
+		}
+		return numErrors;
 	}
+		
 
 	/**
 	 * Implements a linear search to look for the provided pattern in the data
@@ -163,7 +184,18 @@ public class FASTAReader {
 	 */
 	public List<Integer> search(byte[] pattern) {
 		// TODO
-		return null;
+		List<Integer> positions = new ArrayList<>(); 
+		
+		for(int i = 0; i < validBytes-1; i++) 
+			try {	
+				if (compare(pattern, i))
+				positions.add(i);
+				
+			} catch (FASTAException e) {
+				break; 
+			//System.out.println(e.getMessage());
+			}
+		return positions;
 	}
 
 	/**
@@ -180,8 +212,20 @@ public class FASTAReader {
 	 */
 	public List<Integer> searchSNV(byte[] pattern) {
 		// TODO
-		return null;
+List<Integer> res = new ArrayList<>(); 
+		
+		for(int i = 0; i < validBytes-1; i++) 
+			try {	
+				if (compareNumErrors(pattern,i) <=1)
+				res.add(i);
+				
+			} catch (FASTAException e) {
+				break; 
+			
+			}
+		return res;
 	}
+		
 
 	public static void main(String[] args) {
 		long t1 = System.nanoTime();
